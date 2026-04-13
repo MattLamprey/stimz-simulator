@@ -956,8 +956,11 @@ with st.expander("🔍 Show persona cluster profiles"):
 
 st.write("Dataset size:", len(df))
 
-cluster_profiles = df.groupby("persona_cluster").mean()
+cluster_profiles_debug = (
+    df.groupby("persona_cluster")[persona_cols]
+    .mean()
+)
 
-for i in cluster_profiles.index:
-    st.write(f"Cluster {i}")
-    st.write(cluster_profiles.loc[i].sort_values(ascending=False).head(5))
+for cluster_id in cluster_profiles_debug.index:
+    st.markdown(f"### Cluster {cluster_id}")
+    st.write(cluster_profiles_debug.loc[cluster_id].sort_values(ascending=False).head(10))
