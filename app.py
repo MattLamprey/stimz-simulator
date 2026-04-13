@@ -769,7 +769,7 @@ def score_product_type(row):
 	if visual_need < 0.12:
     		product_types = product_types[
         		product_types["Product type"].str.strip() != "Visual stim"
-    ].reset_index(drop=True)
+            ].reset_index(drop=True)
 
     movement_need = (
         predicted_stims["Flipfoldmovingbackandforth"]
