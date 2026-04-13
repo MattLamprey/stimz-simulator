@@ -765,6 +765,13 @@ def score_product_type(row):
 
     intensity_need = predicted_stims["Intenseinputspikypain"] + predicted_stims["Weightedpressure"]
     visual_need = predicted_stims["Lookingatcolourormovement"]
+
+# If visual signal is weak, don't allow Visual stim to be a primary recommendation
+    if visual_need < 0.12:
+    product_types = product_types[
+        product_types["Product type"] != "Visual stim"
+    ].reset_index(drop=True)
+
     movement_need = (
         predicted_stims["Flipfoldmovingbackandforth"]
         + predicted_stims["Twistingspinning"]
@@ -969,9 +976,11 @@ with insight1:
     st.dataframe(symptom_display, width="stretch", hide_index=True)
 
 with insight2:
+    stim_sorted = predicted_stims.sort_values(ascending=False)
+
     stim_display = pd.DataFrame({
-        "Stim type": [stim_labels[col] for col in predicted_stims.index],
-        "Score": predicted_stims.values
+        "Stim type": [stim_labels[col] for col in stim_sorted.index],
+        "Score": stim_sorted.values
     })
     st.dataframe(stim_display, width="stretch", hide_index=True)
 
