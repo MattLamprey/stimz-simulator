@@ -766,11 +766,6 @@ def score_product_type(row):
     intensity_need = predicted_stims["Intenseinputspikypain"] + predicted_stims["Weightedpressure"]
     visual_need = predicted_stims["Lookingatcolourormovement"]
 
-	if visual_need < 0.12:
-    		product_types = product_types[
-        		product_types["Product type"].str.strip() != "Visual stim"
-            ].reset_index(drop=True)
-
     movement_need = (
         predicted_stims["Flipfoldmovingbackandforth"]
         + predicted_stims["Twistingspinning"]
@@ -853,6 +848,14 @@ def score_product_type(row):
 product_types["Score"] = product_types.apply(score_product_type, axis=1)
 product_types = product_types.sort_values("Score", ascending=False).reset_index(drop=True)
 
+# Remove visual stim if not needed
+visual_need = predicted_stims["Lookingatcolourormovement"]
+
+if visual_need < 0.12:
+    product_types = product_types[
+        product_types["Product type"].str.strip() != "Visual stim"
+    ].reset_index(drop=True)
+    
 # Split into primary vs supporting
 primary_candidates = []
 supporting_candidates = []
