@@ -955,3 +955,9 @@ with st.expander("🔍 Show persona cluster profiles"):
     st.dataframe(cluster_profiles, width="stretch")
 
 st.write("Dataset size:", len(df))
+
+cluster_profiles = df.groupby("persona_cluster").mean()
+
+for i in cluster_profiles.index:
+    st.write(f"Cluster {i}")
+    st.write(cluster_profiles.loc[i].sort_values(ascending=False).head(5))
