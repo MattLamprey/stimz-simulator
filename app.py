@@ -433,6 +433,7 @@ if weights.sum() == 0:
     st.error("Similarity scores summed to zero. Try selecting more common conditions or symptoms.")
     st.stop()
 
+avg_similarity = float(top_df["similarity"].mean())
 
 # ----------------------------
 # AGGREGATE RESULTS
@@ -744,8 +745,17 @@ product_type_descriptions = {
 # ----------------------------
 # SCORE PRODUCT TYPES
 # ----------------------------
-stim_weight = 0.80
-feature_weight = 0.20
+if avg_similarity >= 0.40:
+    stim_weight = 0.80
+    feature_weight = 0.20
+elif avg_similarity >= 0.30:
+    stim_weight = 0.87
+    feature_weight = 0.13
+else:
+    stim_weight = 0.93
+    feature_weight = 0.07
+
+st.write("Average similarity:", avg_similarity)
 
 def score_product_type(row):
     stim_score = float(np.dot(row[stim_cols].values, predicted_stims[stim_cols].values))
