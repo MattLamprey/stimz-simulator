@@ -473,7 +473,21 @@ user_cluster = int(persona_model.predict(user_persona_vector_scaled)[0])
 predicted_stims = predicted_stims.copy()
 
 # Reduce dominance of visual signal
-predicted_stims["Lookingatcolourormovement"] *= 0.4
+# Context-aware visual dampening
+visual_base = predicted_stims["Lookingatcolourormovement"]
+intensity_need = predicted_stims["Intenseinputspikypain"] + predicted_stims["Weightedpressure"]
+
+# Strong suppression when intensity dominates
+if intensity_need > 0.3:
+    predicted_stims["Lookingatcolourormovement"] *= 0.3
+
+# Moderate suppression for high severity users
+elif user_severity_group == "High":
+    predicted_stims["Lookingatcolourormovement"] *= 0.5
+
+# Light suppression otherwise
+else:
+    predicted_stims["Lookingatcolourormovement"] *= 0.7
 
 persona_name = persona_names.get(user_cluster, "")
 
@@ -777,7 +791,11 @@ product_types = product_types.sort_values("Score", ascending=False).reset_index(
 primary_candidates = []
 supporting_candidates = []
 
-supporting_types = ["Visual stim"]
+supporting_types = []
+
+# Only allow visual as supporting if it actually has signal
+if predicted_stims["Lookingatcolourormovement"] > 0.12:
+    supporting_types.append("Visual stim")
 
 for p in product_types["Product type"]:
     if p in supporting_types:
@@ -808,9 +826,6 @@ summary_text = (
     f"This is likely because the main challenges reported are **{join_nicely(top_3_symptoms)}**."
 )
 
-# ----------------------------
-# TOP 3 RECOMMENDATIONS
-# ----------------------------
 # ----------------------------
 # HERO OUTPUT (MAIN RESULT)
 # ----------------------------
