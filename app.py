@@ -763,6 +763,14 @@ def score_product_type(row):
 
     persona_name = persona_names.get(user_cluster, "")
 
+    # Dominant-need boost
+    top_stim = predicted_stims.idxmax()
+    top_stim_value = predicted_stims.max()
+
+    if top_stim_value > 0.12:
+        if row[top_stim] > 0:
+            stim_score *= 1.25
+
     # Persona-based tuning
     if persona_name == "Anxious Habit Regulator":
         if row["Product type"] in ["Intense sensory stim", "Stretch-based stim", "Squeeze / resistance stim", "Deep-pressure stim"]:
@@ -780,7 +788,7 @@ def score_product_type(row):
     if intensity_need > 0.2 and product_intensity < 0.3:
         mismatch_penalty += 0.2
 
-    # Visual penalties (clean version)
+    # Visual penalties
     visual_need = predicted_stims["Lookingatcolourormovement"]
 
     visual_penalty = 0.0
