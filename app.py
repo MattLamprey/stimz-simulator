@@ -953,3 +953,5 @@ with st.expander("Show top matched respondents"):
 
 with st.expander("🔍 Show persona cluster profiles"):
     st.dataframe(cluster_profiles, width="stretch")
+
+st.write("Dataset size:", len(df))
