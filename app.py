@@ -806,7 +806,24 @@ for p in product_types["Product type"]:
 top_primary_product_types = primary_candidates[:2]
 top_supporting_product_types = supporting_candidates[:1]
 
-top_3_stims = [stim_labels[col] for col in predicted_stims.head(3).index]
+def is_valid_stim(stim, predicted_stims, intensity_need, severity_group):
+    if stim == "Lookingatcolourormovement":
+        if intensity_need > 0.3:
+            return False
+        if severity_group == "High" and predicted_stims[stim] < 0.12:
+            return False
+    return True
+
+top_3_stims = []
+
+for stim in predicted_stims.sort_values(ascending=False).index:
+    if not is_valid_stim(stim, predicted_stims, intensity_need, user_severity_group):
+        continue
+
+    top_3_stims.append(stim_labels[stim])
+
+    if len(top_3_stims) == 3:
+        break
 top_3_features = [feature_labels[col] for col in predicted_features.head(3).index]
 top_3_symptoms = [symptom_labels[col] for col in predicted_symptoms.head(3).index]
 
