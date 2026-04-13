@@ -806,6 +806,14 @@ for p in product_types["Product type"]:
 top_primary_product_types = primary_candidates[:2]
 top_supporting_product_types = supporting_candidates[:1]
 
+# Fallback: if no supporting option, use next-best remaining product
+if len(top_supporting_product_types) == 0:
+    remaining_products = [
+        p for p in product_types["Product type"]
+        if p not in top_primary_product_types
+    ]
+    top_supporting_product_types = remaining_products[:1]
+
 def is_valid_stim(stim, predicted_stims, intensity_need, severity_group):
     if stim == "Lookingatcolourormovement":
         if intensity_need > 0.3:
@@ -858,7 +866,7 @@ for i, item in enumerate(top_primary_product_types, start=1):
 
 # SUPPORTING
 if top_supporting_product_types:
-    st.markdown("## Supporting options")
+    st.markdown("## Additional option")
     st.caption("Additional tools that may complement your primary regulation style")
 
     for i, item in enumerate(top_supporting_product_types, start=1):
