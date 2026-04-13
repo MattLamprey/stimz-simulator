@@ -766,9 +766,9 @@ def score_product_type(row):
     intensity_need = predicted_stims["Intenseinputspikypain"] + predicted_stims["Weightedpressure"]
     visual_need = predicted_stims["Lookingatcolourormovement"]
 
-    if visual_need < 0.12:
-    product_types = product_types[
-        product_types["Product type"].str.strip() != "Visual stim"
+	if visual_need < 0.12:
+    		product_types = product_types[
+        		product_types["Product type"].str.strip() != "Visual stim"
     ].reset_index(drop=True)
 
     movement_need = (
