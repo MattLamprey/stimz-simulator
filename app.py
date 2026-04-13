@@ -85,19 +85,19 @@ feature_labels = {
 }
 
 persona_names = {
-    0: "Deep Pressure Regulator",
-    1: "Emotional Regulator",
-    2: "High-Intensity Seeker",
-    3: "Anxious Habit Regulator",
-    4: "Focus & Fidget Regulator",
+    0: "High-Intensity Seeker",
+    1: "Focus & Fidget Regulator",
+    2: "Deep Pressure Regulator",
+    3: "Focus & Pressure Regulator",
+    4: "Anxious Habit Regulator",
 }
 
 persona_descriptions = {
-    0: "Tends to feel overwhelmed or mentally drained and benefits from grounding sensory input like pressure, resistance, or oral stimulation.",
-    1: "Experiences intense emotional fluctuations and may use sensory input or repetitive behaviours to regulate anxiety and stress.",
-    2: "Actively seeks strong sensory input such as pressure, resistance, or intense feedback to regulate sensory overload and internal tension.",
-    3: "Tends to develop repetitive habits (e.g. picking, fidgeting) in response to anxiety or stress, benefiting from controlled sensory alternatives.",
-    4: "Struggles with focus and restlessness, often benefiting from movement-based or tactile stimulation to maintain attention and calm.",
+    "High-Intensity Seeker": "Actively seeks strong sensory input such as pressure, resistance, or intense feedback to regulate sensory overload and internal tension.",
+    "Focus & Fidget Regulator": "Struggles with focus and restlessness, often benefiting from movement-based or tactile stimulation to maintain attention and calm.",
+    "Deep Pressure Regulator": "Tends to feel overwhelmed or mentally drained and benefits from grounding sensory input like pressure, resistance, or oral stimulation.",
+    "Focus & Pressure Regulator": "Often combines concentration difficulties with restlessness and benefits from both grounding pressure input and active fidget-based regulation.",
+    "Anxious Habit Regulator": "Tends to develop repetitive habits such as picking, fidgeting, or mouthing in response to anxiety or stress, benefiting from controlled sensory alternatives.",
 }
 
 
