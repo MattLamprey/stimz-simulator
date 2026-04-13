@@ -763,34 +763,76 @@ def score_product_type(row):
 
     persona_name = persona_names.get(user_cluster, "")
 
-    # Dominant-need boost
+    intensity_need = predicted_stims["Intenseinputspikypain"] + predicted_stims["Weightedpressure"]
+    visual_need = predicted_stims["Lookingatcolourormovement"]
+    movement_need = (
+        predicted_stims["Flipfoldmovingbackandforth"]
+        + predicted_stims["Twistingspinning"]
+        + predicted_stims["Tappingdrumming"]
+        + predicted_stims["Rolling"]
+    )
+    oral_need = predicted_stims["Chewingmouthing"]
+    pressure_need = predicted_stims["Weightedpressure"] + predicted_stims["Squeezingsquishing"] + predicted_stims["Stretchingpulling"]
+
     top_stim = predicted_stims.idxmax()
     top_stim_value = predicted_stims.max()
 
-    if top_stim_value > 0.12:
-        if row[top_stim] > 0:
-            stim_score *= 1.25
+    # Dominant-need boost
+    if top_stim_value > 0.12 and row[top_stim] > 0:
+        stim_score *= 1.20
 
     # Persona-based tuning
-    if persona_name == "Anxious Habit Regulator":
+    if persona_name == "High-Intensity Seeker":
+        if row["Product type"] in ["Intense sensory stim", "Deep-pressure stim", "Squeeze / resistance stim", "Stretch-based stim"]:
+            stim_score *= 1.25
+        if row["Product type"] == "Chewable stim" and oral_need > 0.08:
+            stim_score *= 1.10
+        if row["Product type"] in ["Visual stim", "Wearable sensory stim"]:
+            stim_score *= 0.85
+
+    elif persona_name == "Focus & Fidget Regulator":
+        if row["Product type"] in ["Fidget / motor stim", "Quiet handheld stim", "Tactile texture stim"]:
+            stim_score *= 1.25
+        if row["Product type"] == "Chewable stim" and oral_need > 0.08:
+            stim_score *= 1.10
+        if row["Product type"] in ["Intense sensory stim", "Deep-pressure stim"] and intensity_need < 0.20:
+            stim_score *= 0.85
+
+    elif persona_name == "Deep Pressure Regulator":
+        if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim", "Stretch-based stim"]:
+            stim_score *= 1.30
+        if row["Product type"] == "Chewable stim" and oral_need > 0.08:
+            stim_score *= 1.08
+        if row["Product type"] == "Intense sensory stim" and intensity_need < 0.25:
+            stim_score *= 0.85
+        if row["Product type"] == "Visual stim":
+            stim_score *= 0.80
+
+    elif persona_name == "Focus & Pressure Regulator":
+        if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim", "Fidget / motor stim", "Quiet handheld stim"]:
+            stim_score *= 1.22
+        if row["Product type"] == "Stretch-based stim":
+            stim_score *= 1.12
+        if row["Product type"] == "Visual stim":
+            stim_score *= 0.85
+
+    elif persona_name == "Anxious Habit Regulator":
+        if row["Product type"] in ["Tactile texture stim", "Fidget / motor stim", "Quiet handheld stim", "Wearable sensory stim"]:
+            stim_score *= 1.30
+        if row["Product type"] == "Chewable stim" and oral_need > 0.06:
+            stim_score *= 1.12
         if row["Product type"] in ["Intense sensory stim", "Stretch-based stim", "Squeeze / resistance stim", "Deep-pressure stim"]:
-            stim_score *= 0.5
-        if row["Product type"] in ["Tactile texture stim", "Fidget / motor stim", "Quiet handheld stim"]:
-            stim_score *= 1.35
+            stim_score *= 0.55
         if row["Product type"] == "Visual stim":
             stim_score *= 0.65
 
-    # Intensity mismatch
-    intensity_need = predicted_stims["Intenseinputspikypain"] + predicted_stims["Weightedpressure"]
+    # Intensity mismatch penalty
     product_intensity = row["Intenseinputspikypain"] + row["Weightedpressure"]
-
     mismatch_penalty = 0.0
     if intensity_need > 0.2 and product_intensity < 0.3:
         mismatch_penalty += 0.2
 
     # Visual penalties
-    visual_need = predicted_stims["Lookingatcolourormovement"]
-
     visual_penalty = 0.0
     if row["Product type"] == "Visual stim":
         if visual_need < 0.08:
