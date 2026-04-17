@@ -872,7 +872,6 @@ def score_product_type(row):
     if persona_name == "High-Intensity Seeker":
         if row["Product type"] in ["Intense sensory stim", "Squeeze / resistance stim", "Deep-pressure stim", "Stretch-based stim"]:
             stim_score *= (1 + (0.18 * persona_boost))
-
         if row["Product type"] in ["Chewable stim", "Wearable sensory stim", "Quiet handheld stim"]:
             stim_score *= (1 - (0.18 * persona_boost))
 
@@ -918,16 +917,37 @@ def score_product_type(row):
             visual_penalty += 0.25
         if intensity_need > 0.3:
             visual_penalty += 0.20
+
     # Direct user symptom signal
     direct_symptom_boost = 0.0
-
     for symptom_col in selected_symptom_cols:
         boosted_products = symptom_product_boosts.get(symptom_col, [])
         if row["Product type"] in boosted_products:
-            direct_symptom_boost += 0.12
+            direct_symptom_boost += 0.20
 
     # Cap so it doesn't explode
-    direct_symptom_boost = min(direct_symptom_boost, 0.30)
+    direct_symptom_boost = min(direct_symptom_boost, 0.50)
+
+    # Hard override rules
+    override_boost = 0.0
+
+    if "Chewingormouthingurges" in selected_symptom_cols:
+        if row["Product type"] == "Chewable stim":
+            override_boost += 0.25
+
+    if (
+        "Needingdeeppressureorstrongsensoryinput" in selected_symptom_cols
+        or "Seekingpainfulorveryintensesensation" in selected_symptom_cols
+    ):
+        if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim", "Intense sensory stim", "Stretch-based stim"]:
+            override_boost += 0.30
+
+    if "Skinpickingornailbiting" in selected_symptom_cols:
+        if row["Product type"] == "Tactile texture stim":
+            override_boost += 0.20
+
+    if visual_need < 0.08 and row["Product type"] == "Visual stim":
+        override_boost -= 0.30
 
     return (
         (stim_weight * stim_score)
@@ -935,6 +955,7 @@ def score_product_type(row):
         + direct_symptom_boost
         - mismatch_penalty
         - visual_penalty
+        + override_boost
     )
 
 product_types["Score"] = product_types.apply(score_product_type, axis=1)
