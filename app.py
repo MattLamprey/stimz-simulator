@@ -762,11 +762,11 @@ product_type_descriptions = {
 # SCORE PRODUCT TYPES
 # ----------------------------
 if avg_similarity >= 0.40:
-    stim_weight = 0.80
-    feature_weight = 0.20
+    stim_weight = 0.90
+    feature_weight = 0.10
 elif avg_similarity >= 0.30:
-    stim_weight = 0.87
-    feature_weight = 0.13
+    stim_weight = 0.92
+    feature_weight = 0.09
 else:
     stim_weight = 0.93
     feature_weight = 0.07
@@ -789,16 +789,16 @@ def score_product_type(row):
     top_stim_value = predicted_stims.max()
 
     if top_stim_value > 0.12 and row[top_stim] > 0:
-        stim_score *= 1.2
+        stim_score *= 1.15
 
     # Broad-product controls
-    if row["Product type"] == "Chewable stim" and oral_need < 0.10:
-        stim_score *= 0.85
+    if row["Product type"] == "Chewable stim" and oral_need < 0.12:
+        stim_score *= 0.80
 
-    if row["Product type"] == "Wearable sensory stim" and predicted_features["Wearable"] < 0.08:
-        feature_score *= 0.80
+    if row["Product type"] == "Wearable sensory stim" and predicted_features["Wearable"] < 0.10:
+        feature_score *= 0.70
 
-    # Similarity-based damping for persona influence
+    # Similarity-based damping
     if avg_similarity >= 0.40:
         persona_boost = 1.0
     elif avg_similarity >= 0.30:
@@ -808,41 +808,46 @@ def score_product_type(row):
 
     # Persona tuning
     if persona_name == "High-Intensity Seeker":
-        if row["Product type"] in ["Intense sensory stim", "Squeeze / resistance stim"]:
-            stim_score *= (1 + (0.10 * persona_boost))
-        if row["Product type"] in ["Quiet handheld stim", "Wearable sensory stim"]:
-            stim_score *= (1 - (0.15 * persona_boost))
+        if row["Product type"] in ["Intense sensory stim", "Squeeze / resistance stim", "Deep-pressure stim", "Stretch-based stim"]:
+            stim_score *= (1 + (0.18 * persona_boost))
+
+        if row["Product type"] in ["Chewable stim", "Wearable sensory stim", "Quiet handheld stim"]:
+            stim_score *= (1 - (0.18 * persona_boost))
 
     elif persona_name == "Anxious Habit Regulator":
-        if row["Product type"] in ["Chewable stim", "Tactile texture stim"]:
-            stim_score *= (1 + (0.12 * persona_boost))
+        if row["Product type"] in ["Chewable stim", "Tactile texture stim", "Quiet handheld stim"]:
+            stim_score *= (1 + (0.10 * persona_boost))
         if row["Product type"] in ["Intense sensory stim"]:
             stim_score *= (1 - (0.20 * persona_boost))
 
     elif persona_name == "Deep Pressure Regulator":
-        if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim"]:
+        if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim", "Stretch-based stim"]:
             stim_score *= (1 + (0.12 * persona_boost))
-        if row["Product type"] in ["Visual stim"]:
+        if row["Product type"] == "Visual stim":
             stim_score *= (1 - (0.20 * persona_boost))
 
     elif persona_name == "Oral & Pressure Regulator":
         if row["Product type"] in ["Chewable stim", "Deep-pressure stim"]:
             stim_score *= (1 + (0.10 * persona_boost))
-        if row["Product type"] in ["Visual stim"]:
+        if row["Product type"] == "Visual stim":
             stim_score *= (1 - (0.20 * persona_boost))
 
     elif persona_name == "Anxious Focus Regulator":
         if row["Product type"] in ["Fidget / motor stim", "Quiet handheld stim"]:
             stim_score *= (1 + (0.10 * persona_boost))
-        if row["Product type"] in ["Intense sensory stim"]:
+        if row["Product type"] == "Intense sensory stim":
             stim_score *= (1 - (0.20 * persona_boost))
 
     # Intensity mismatch
     product_intensity = row["Intenseinputspikypain"] + row["Weightedpressure"]
     mismatch_penalty = 0.0
 
-    if intensity_need > 0.2 and product_intensity < 0.3:
-        mismatch_penalty += 0.2
+    if intensity_need > 0.22 and product_intensity < 0.30:
+        mismatch_penalty += 0.25
+
+    # Extra penalty for broad products in strong-intensity cases
+    if intensity_need > 0.22 and row["Product type"] in ["Chewable stim", "Wearable sensory stim"]:
+        mismatch_penalty += 0.20
 
     # Visual penalty
     visual_penalty = 0.0
@@ -850,10 +855,10 @@ def score_product_type(row):
         if visual_need < 0.08:
             visual_penalty += 0.25
         if intensity_need > 0.3:
-            visual_penalty += 0.2
+            visual_penalty += 0.20
 
-    return (stim_weight * stim_score) + (feature_weight * feature_score) - mismatch_penalty - visual_penalty
-product_types["Score"] = product_types.apply(score_product_type, axis=1)
+    return (stim_weight * stim_score) + (feature_weight * feature_score) - mismatch_penalty - visual_penaltyproduct_types["Score"] = product_types.apply(score_product_type, axis=1)
+    
 product_types = product_types.sort_values("Score", ascending=False).reset_index(drop=True)
 
 # Remove visual stim if not needed
