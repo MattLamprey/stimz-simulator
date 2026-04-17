@@ -1042,12 +1042,14 @@ st.write(persona_descriptions.get(persona_name, ""))
 
 st.subheader("Why these may help")
 
-st.write(summary_text) = (
+summary_text = (
     f"People with a similar profile to you tend to benefit from stims that provide **{join_nicely(top_3_stims)}**. "
     f"These are often most helpful when they are **{join_nicely(top_3_features)}**. "
     f"A good place to start would be looking for **{join_nicely(top_primary_product_types + top_supporting_product_types)}**. "
     f"This is likely because the main challenges reported are **{join_nicely(top_3_symptoms)}**."
 )
+
+st.write(summary_text)
 # ----------------------------
 # HERO OUTPUT (MAIN RESULT)
 # ----------------------------
