@@ -359,10 +359,19 @@ st.caption(f"Severity group: {user_severity_group}")
 
 with col2:
     selected_symptoms_display = st.multiselect(
-    "Select your top 3 symptoms",
-    list(symptom_labels.values()),
-    max_selections=3
-)
+        "Select your top 3 symptoms",
+        list(symptom_labels.values()),
+        max_selections=3
+    )
+
+# 🔥 ADD THIS RIGHT HERE
+label_to_symptom = {v: k for k, v in symptom_labels.items()}
+
+selected_symptom_cols = [
+    label_to_symptom[s]
+    for s in selected_symptoms_display
+    if s in label_to_symptom
+]
 
 if len(selected_conditions) == 0 or len(selected_symptoms_display) == 0:
     st.warning("Please select at least one condition and at least one top symptom.")
@@ -758,6 +767,59 @@ product_type_descriptions = {
 "Intense sensory stim": "Designed for those who seek strong sensory input, including spiky, firm, or high-intensity feedback.",
 }
 
+symptom_product_boosts = {
+    "Seekingpainfulorveryintensesensation": [
+        "Intense sensory stim",
+        "Squeeze / resistance stim",
+        "Deep-pressure stim",
+        "Stretch-based stim",
+    ],
+    "Needingdeeppressureorstrongsensoryinput": [
+        "Deep-pressure stim",
+        "Squeeze / resistance stim",
+        "Stretch-based stim",
+    ],
+    "Bigemotionsthatarehardtoregulate": [
+        "Intense sensory stim",
+        "Deep-pressure stim",
+        "Squeeze / resistance stim",
+    ],
+    "Skinpickingornailbiting": [
+        "Chewable stim",
+        "Tactile texture stim",
+        "Quiet handheld stim",
+    ],
+    "Chewingormouthingurges": [
+        "Chewable stim",
+    ],
+    "Suddenanxietyspikes": [
+        "Quiet handheld stim",
+        "Tactile texture stim",
+        "Wearable sensory stim",
+        "Chewable stim",
+    ],
+    "Difficultyfocusingorstayingontask": [
+        "Fidget / motor stim",
+        "Quiet handheld stim",
+        "Wearable sensory stim",
+    ],
+    "Feelingmentallydrainedorshutdown": [
+        "Deep-pressure stim",
+        "Stretch-based stim",
+        "Chewable stim",
+    ],
+    "Feelingoverwhelmedsensoryormental": [
+        "Deep-pressure stim",
+        "Stretch-based stim",
+        "Quiet handheld stim",
+    ],
+    "Restlessnessorneedingtomovefidget": [
+        "Fidget / motor stim",
+        "Stretch-based stim",
+        "Quiet handheld stim",
+    ],
+}
+
 # ----------------------------
 # SCORE PRODUCT TYPES
 # ----------------------------
@@ -856,8 +918,24 @@ def score_product_type(row):
             visual_penalty += 0.25
         if intensity_need > 0.3:
             visual_penalty += 0.20
+    # Direct user symptom signal
+    direct_symptom_boost = 0.0
 
-    return (stim_weight * stim_score) + (feature_weight * feature_score) - mismatch_penalty - visual_penalty
+    for symptom_col in selected_symptom_cols:
+        boosted_products = symptom_product_boosts.get(symptom_col, [])
+        if row["Product type"] in boosted_products:
+            direct_symptom_boost += 0.12
+
+    # Cap so it doesn't explode
+    direct_symptom_boost = min(direct_symptom_boost, 0.30)
+
+    return (
+        (stim_weight * stim_score)
+        + (feature_weight * feature_score)
+        + direct_symptom_boost
+        - mismatch_penalty
+        - visual_penalty
+    )
 
 product_types["Score"] = product_types.apply(score_product_type, axis=1)
 product_types = product_types.sort_values("Score", ascending=False).reset_index(drop=True)
