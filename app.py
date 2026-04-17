@@ -8,6 +8,11 @@ import streamlit as st
 st.set_page_config(page_title="Stimz Recommender Prototype", layout="wide")
 
 # ----------------------------
+# DEV MODE TOGGLE
+# ----------------------------
+developer_mode = st.sidebar.checkbox("Developer mode", value=False)
+
+# ----------------------------
 # LOAD DATA
 # ----------------------------
 @st.cache_data
@@ -355,7 +360,8 @@ with col1:
 user_severity = (float(severity) - 1.0) / 4.0
 user_severity_group = severity_group_from_score(severity)
 
-st.caption(f"Severity group: {user_severity_group}")
+if developer_mode:
+    st.caption(f"Severity group: {user_severity_group}")
 
 with col2:
     selected_symptoms_display = st.multiselect(
@@ -833,7 +839,8 @@ else:
     stim_weight = 0.93
     feature_weight = 0.07
 
-st.write("Average similarity:", avg_similarity)
+if developer_mode:
+    st.write("Average similarity:", avg_similarity)
 
 def score_product_type(row):
     stim_score = float(np.dot(row[stim_cols].values, predicted_stims[stim_cols].values))
@@ -1033,9 +1040,9 @@ st.markdown(f"**{persona_taglines.get(persona_name, '')}**")
 # Description
 st.write(persona_descriptions.get(persona_name, ""))
 
-st.subheader("Summary recommendation")
+st.subheader("Why these may help")
 
-summary_text = (
+st.write(summary_text) = (
     f"People with a similar profile to you tend to benefit from stims that provide **{join_nicely(top_3_stims)}**. "
     f"These are often most helpful when they are **{join_nicely(top_3_features)}**. "
     f"A good place to start would be looking for **{join_nicely(top_primary_product_types + top_supporting_product_types)}**. "
@@ -1065,76 +1072,72 @@ if top_supporting_product_types:
 
 st.divider()
 
-st.subheader("How this recommendation is built")
+if developer_mode:
+    with st.expander("How this was calculated"):
 
-rec1, rec2, rec3 = st.columns(3)
+        st.subheader("How this recommendation is built")
 
-with rec1:
-    st.markdown("### Stim interaction types")
-    for i, item in enumerate(top_3_stims, start=1):
-        st.markdown(f"{i}. {item}")
+        rec1, rec2, rec3 = st.columns(3)
 
-with rec2:
-    st.markdown("### Practical features")
-    for i, item in enumerate(top_3_features, start=1):
-        st.markdown(f"{i}. {item}")
+        with rec1:
+            st.markdown("### Stim interaction types")
+            for i, item in enumerate(top_3_stims, start=1):
+                st.markdown(f"{i}. {item}")
 
-with rec3:
-    st.markdown("### Symptom drivers")
-    for i, item in enumerate(top_3_symptoms, start=1):
-        st.markdown(f"{i}. {item}")
+        with rec2:
+            st.markdown("### Practical features")
+            for i, item in enumerate(top_3_features, start=1):
+                st.markdown(f"{i}. {item}")
 
-# ----------------------------
-# DETAILED TABLES
-# ----------------------------
-st.subheader("Full matched profile insight")
+        with rec3:
+            st.markdown("### Symptom drivers")
+            for i, item in enumerate(top_3_symptoms, start=1):
+                st.markdown(f"{i}. {item}")
 
-insight1, insight2, insight3 = st.columns(3)
+        st.subheader("Full matched profile insight")
 
-with insight1:
-    symptom_display = pd.DataFrame({
-        "Symptom": [symptom_labels[col] for col in predicted_symptoms.index],
-        "Score": predicted_symptoms.values
-    })
-    st.dataframe(symptom_display, width="stretch", hide_index=True)
+        insight1, insight2, insight3 = st.columns(3)
 
-with insight2:
-    stim_sorted = predicted_stims.sort_values(ascending=False)
+        with insight1:
+            symptom_display = pd.DataFrame({
+                "Symptom": [symptom_labels[col] for col in predicted_symptoms.index],
+                "Score": predicted_symptoms.values
+            })
+            st.dataframe(symptom_display, width="stretch", hide_index=True)
 
-    stim_display = pd.DataFrame({
-        "Stim type": [stim_labels[col] for col in stim_sorted.index],
-        "Score": stim_sorted.values
-    })
-    st.dataframe(stim_display, width="stretch", hide_index=True)
+        with insight2:
+            stim_sorted = predicted_stims.sort_values(ascending=False)
+            stim_display = pd.DataFrame({
+                "Stim type": [stim_labels[col] for col in stim_sorted.index],
+                "Score": stim_sorted.values
+            })
+            st.dataframe(stim_display, width="stretch", hide_index=True)
 
-with insight3:
-    feature_display = pd.DataFrame({
-        "Feature": [feature_labels[col] for col in predicted_features.index],
-        "Score": predicted_features.values
-    })
-    st.dataframe(feature_display, width="stretch", hide_index=True)
+        with insight3:
+            feature_display = pd.DataFrame({
+                "Feature": [feature_labels[col] for col in predicted_features.index],
+                "Score": predicted_features.values
+            })
+            st.dataframe(feature_display, width="stretch", hide_index=True)
 
-# ----------------------------
-# MODEL DIAGNOSTICS
-# ----------------------------
-st.subheader("Model diagnostics")
-st.write(f"Number of matched respondents used: {len(top_df)}")
-st.write(f"Average similarity of matched respondents: {top_df['similarity'].mean():.3f}")
+        st.subheader("Model diagnostics")
+        st.write(f"Number of matched respondents used: {len(top_df)}")
+        st.write(f"Average similarity of matched respondents: {top_df['similarity'].mean():.3f}")
+        st.write(f"Dataset size: {len(df)}")
 
-with st.expander("Show top matched respondents"):
-    display_cols = ["similarity"] + list(condition_options.values()) + list(severity_cols.values())
-    st.dataframe(top_df[display_cols].head(20), width="stretch", hide_index=True)
+        with st.expander("Show top matched respondents"):
+            display_cols = ["similarity"] + list(condition_options.values()) + list(severity_cols.values())
+            st.dataframe(top_df[display_cols].head(20), width="stretch", hide_index=True)
 
-with st.expander("🔍 Show persona cluster profiles"):
-    st.dataframe(cluster_profiles, width="stretch")
+        with st.expander("Show persona cluster profiles"):
+            st.dataframe(cluster_profiles, width="stretch")
 
-st.write("Dataset size:", len(df))
+        with st.expander("Cluster debug"):
+            cluster_profiles_debug = (
+                df.groupby("persona_cluster")[persona_cols]
+                .mean()
+            )
 
-cluster_profiles_debug = (
-    df.groupby("persona_cluster")[persona_cols]
-    .mean()
-)
-
-for cluster_id in cluster_profiles_debug.index:
-    st.markdown(f"### Cluster {cluster_id}")
-    st.write(cluster_profiles_debug.loc[cluster_id].sort_values(ascending=False).head(10))
+            for cluster_id in cluster_profiles_debug.index:
+                st.markdown(f"### Cluster {cluster_id}")
+                st.write(cluster_profiles_debug.loc[cluster_id].sort_values(ascending=False).head(10))
