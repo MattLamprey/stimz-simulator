@@ -857,7 +857,7 @@ def score_product_type(row):
         if intensity_need > 0.3:
             visual_penalty += 0.20
 
-return (stim_weight * stim_score) + (feature_weight * feature_score) - mismatch_penalty - visual_penalty
+    return (stim_weight * stim_score) + (feature_weight * feature_score) - mismatch_penalty - visual_penalty
 
 product_types = product_types.sort_values("Score", ascending=False).reset_index(drop=True)
 
