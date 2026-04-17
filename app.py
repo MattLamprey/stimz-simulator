@@ -1027,8 +1027,14 @@ for stim in predicted_stims.sort_values(ascending=False).index:
 
     if len(top_3_stims) == 3:
         break
-top_3_features = [feature_labels[col] for col in predicted_features.head(3).index]
-top_3_symptoms = [symptom_labels[col] for col in predicted_symptoms.head(3).index]
+top_3_features = [
+    feature_labels[col]
+    for col in predicted_features.sort_values(ascending=False).head(3).index
+]
+top_3_symptoms = [
+    symptom_labels[col]
+    for col in predicted_symptoms.sort_values(ascending=False).head(3).index
+]
 
 # ----------------------------
 # FRIENDLY SUMMARY
@@ -1048,21 +1054,26 @@ st.write(persona_descriptions.get(persona_name, ""))
 
 st.subheader("Why these may help")
 
-summary_text = (
-    f"People with a similar profile to you tend to benefit from stims that provide **{join_nicely(top_3_stims)}**. "
-    f"These are often most helpful when they are **{join_nicely(top_3_features)}**. "
-    f"A good place to start would be looking for **{join_nicely(top_primary_product_types + top_supporting_product_types)}**. "
-    f"This is likely because the main challenges reported are **{join_nicely(top_3_symptoms)}**."
-)
+st.markdown(f"""
+Based on what you've told us, it looks like you may benefit most from:
 
-st.write(summary_text)
+{chr(10).join([f"• **{x}**" for x in top_3_stims])}
+
+These tend to work best when the product is:
+
+{chr(10).join([f"• **{x}**" for x in top_3_features])}
+
+Your recommendations are based mainly on the challenges you selected:
+**{join_nicely(top_3_symptoms)}**
+""")
+
 # ----------------------------
 # HERO OUTPUT (MAIN RESULT)
 # ----------------------------
 st.subheader("What should you look for")
 
 # PRIMARY
-st.markdown("## Primary recommendations")
+st.markdown("## Best matches")
 
 for i, item in enumerate(top_primary_product_types, start=1):
     st.markdown(f"### {i}. {item}")
@@ -1071,7 +1082,7 @@ for i, item in enumerate(top_primary_product_types, start=1):
 
 # SUPPORTING
 if top_supporting_product_types:
-    st.markdown("## Additional option")
+    st.markdown("## Also worth trying")
     st.caption("Additional tools that may complement your primary regulation style")
 
     for i, item in enumerate(top_supporting_product_types, start=1):
