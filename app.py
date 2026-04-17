@@ -85,21 +85,37 @@ feature_labels = {
 }
 
 persona_names = {
-    0: "High-Intensity Seeker",
-    1: "Focus & Fidget Regulator",
-    2: "Deep Pressure Regulator",
-    3: "Focus & Pressure Regulator",
-    4: "Anxious Habit Regulator",
+    0: "Anxious Focus Regulator",
+    1: "High-Intensity Seeker",
+    2: "Oral & Pressure Regulator",
+    3: "Deep Pressure Regulator",
+    4: "Anxious Habit Regulator"
 }
 
 persona_descriptions = {
-    "High-Intensity Seeker": "Actively seeks strong sensory input such as pressure, resistance, or intense feedback to regulate sensory overload and internal tension.",
-    "Focus & Fidget Regulator": "Struggles with focus and restlessness, often benefiting from movement-based or tactile stimulation to maintain attention and calm.",
-    "Deep Pressure Regulator": "Tends to feel overwhelmed or mentally drained and benefits from grounding sensory input like pressure, resistance, or oral stimulation.",
-    "Focus & Pressure Regulator": "Often combines concentration difficulties with restlessness and benefits from both grounding pressure input and active fidget-based regulation.",
-    "Anxious Habit Regulator": "Tends to develop repetitive habits such as picking, fidgeting, or mouthing in response to anxiety or stress, benefiting from controlled sensory alternatives.",
+    "Anxious Focus Regulator":
+        "Experiences restlessness, anxiety, and difficulty focusing. Benefits from controlled movement and calming sensory input to stay grounded and on task.",
+
+    "High-Intensity Seeker":
+        "Actively seeks strong sensory input such as pressure, resistance, or intense feedback to regulate overwhelming emotions and internal tension.",
+
+    "Oral & Pressure Regulator":
+        "Finds relief through oral and deep pressure input. Tends to self-soothe using chewing or grounding sensations to manage focus and stress.",
+
+    "Deep Pressure Regulator":
+        "Often feels overwhelmed or mentally drained and benefits from steady, grounding input like pressure or resistance to regain calm and stability.",
+
+    "Anxious Habit Regulator":
+        "Tends to develop repetitive habits such as picking or fidgeting in response to anxiety. Benefits from safe, controlled sensory alternatives to redirect these behaviours."
 }
 
+persona_taglines = {
+    "Anxious Focus Regulator": "Stay calm, stay focused",
+    "High-Intensity Seeker": "Strong input for strong regulation",
+    "Oral & Pressure Regulator": "Grounding through sensation",
+    "Deep Pressure Regulator": "Calm through steady input",
+    "Anxious Habit Regulator": "Replace habits with healthy input"
+}
 
 symptom_cols = list(symptom_labels.keys())
 stim_cols = list(stim_labels.keys())
@@ -783,49 +799,37 @@ def score_product_type(row):
         stim_score *= 1.20
 
     # Persona-based tuning
-    if persona_name == "High-Intensity Seeker":
-        if row["Product type"] in ["Intense sensory stim", "Deep-pressure stim", "Squeeze / resistance stim", "Stretch-based stim"]:
-            stim_score *= 1.25
-        if row["Product type"] == "Chewable stim" and oral_need > 0.08:
-            stim_score *= 1.10
-        if row["Product type"] in ["Visual stim", "Wearable sensory stim"]:
-            stim_score *= 0.85
+    # Persona-based tuning (REFINED)
 
-    elif persona_name == "Focus & Fidget Regulator":
-        if row["Product type"] in ["Fidget / motor stim", "Quiet handheld stim", "Tactile texture stim"]:
-            stim_score *= 1.25
-        if row["Product type"] == "Chewable stim" and oral_need > 0.08:
-            stim_score *= 1.10
-        if row["Product type"] in ["Intense sensory stim", "Deep-pressure stim"] and intensity_need < 0.20:
-            stim_score *= 0.85
+if persona_name == "High-Intensity Seeker":
+    if row["Product type"] in ["Intense sensory stim", "Squeeze / resistance stim"]:
+        stim_score *= 1.25
+    if row["Product type"] in ["Quiet handheld stim", "Wearable sensory stim"]:
+        stim_score *= 0.8
 
-    elif persona_name == "Deep Pressure Regulator":
-        if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim", "Stretch-based stim"]:
-            stim_score *= 1.30
-        if row["Product type"] == "Chewable stim" and oral_need > 0.08:
-            stim_score *= 1.08
-        if row["Product type"] == "Intense sensory stim" and intensity_need < 0.25:
-            stim_score *= 0.85
-        if row["Product type"] == "Visual stim":
-            stim_score *= 0.80
+elif persona_name == "Anxious Habit Regulator":
+    if row["Product type"] in ["Chewable stim", "Tactile texture stim"]:
+        stim_score *= 1.3
+    if row["Product type"] in ["Intense sensory stim"]:
+        stim_score *= 0.6
 
-    elif persona_name == "Focus & Pressure Regulator":
-        if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim", "Fidget / motor stim", "Quiet handheld stim"]:
-            stim_score *= 1.22
-        if row["Product type"] == "Stretch-based stim":
-            stim_score *= 1.12
-        if row["Product type"] == "Visual stim":
-            stim_score *= 0.85
+elif persona_name == "Deep Pressure Regulator":
+    if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim"]:
+        stim_score *= 1.3
+    if row["Product type"] in ["Visual stim"]:
+        stim_score *= 0.6
 
-    elif persona_name == "Anxious Habit Regulator":
-        if row["Product type"] in ["Tactile texture stim", "Fidget / motor stim", "Quiet handheld stim", "Wearable sensory stim"]:
-            stim_score *= 1.30
-        if row["Product type"] == "Chewable stim" and oral_need > 0.06:
-            stim_score *= 1.12
-        if row["Product type"] in ["Intense sensory stim", "Stretch-based stim", "Squeeze / resistance stim", "Deep-pressure stim"]:
-            stim_score *= 0.55
-        if row["Product type"] == "Visual stim":
-            stim_score *= 0.65
+elif persona_name == "Oral & Pressure Regulator":
+    if row["Product type"] in ["Chewable stim", "Deep-pressure stim"]:
+        stim_score *= 1.25
+    if row["Product type"] in ["Visual stim"]:
+        stim_score *= 0.7
+
+elif persona_name == "Anxious Focus Regulator":
+    if row["Product type"] in ["Fidget / motor stim", "Quiet handheld stim"]:
+        stim_score *= 1.25
+    if row["Product type"] in ["Intense sensory stim"]:
+        stim_score *= 0.75
 
     # Intensity mismatch penalty
     product_intensity = row["Intenseinputspikypain"] + row["Weightedpressure"]
@@ -907,9 +911,18 @@ top_3_symptoms = [symptom_labels[col] for col in predicted_symptoms.head(3).inde
 # ----------------------------
 # FRIENDLY SUMMARY
 # ----------------------------
-st.subheader("Your sensory persona")
-st.markdown(f"### {persona_names.get(user_cluster, f'Persona {user_cluster}')}")
-st.write(persona_descriptions.get(user_cluster, ""))
+st.markdown("---")
+
+persona_name = persona_names.get(user_cluster, f"Persona {user_cluster}")
+
+st.subheader("Your sensory profile")
+st.markdown(f"### {persona_name}")
+
+# Tagline
+st.markdown(f"**{persona_taglines.get(persona_name, '')}**")
+
+# Description
+st.write(persona_descriptions.get(persona_name, ""))
 
 st.subheader("Summary recommendation")
 
@@ -919,7 +932,6 @@ summary_text = (
     f"A good place to start would be looking for **{join_nicely(top_primary_product_types + top_supporting_product_types)}**. "
     f"This is likely because the main challenges reported are **{join_nicely(top_3_symptoms)}**."
 )
-
 # ----------------------------
 # HERO OUTPUT (MAIN RESULT)
 # ----------------------------
