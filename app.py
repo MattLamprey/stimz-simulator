@@ -1057,13 +1057,13 @@ st.subheader("Why these may help")
 st.markdown(f"""
 Based on what you've told us, it looks like you may benefit most from:
 
-{chr(10).join([f"• **{x}**" for x in top_3_stims])}
+{chr(10).join([f"- **{x}**" for x in top_3_stims])}
 
 These tend to work best when the product is:
 
-{chr(10).join([f"• **{x}**" for x in top_3_features])}
+{chr(10).join([f"- **{x}**" for x in top_3_features])}
 
-Your recommendations are based mainly on the challenges you selected:
+Your recommendations are based mainly on the challenges you selected:  
 **{join_nicely(top_3_symptoms)}**
 """)
 
