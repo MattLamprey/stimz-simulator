@@ -846,7 +846,7 @@ else:
     feature_weight = 0.07
 
 if developer_mode:
-    st.write("Average similarity:", avg_similarity)
+    st.write("Match strength (how similar these users are to you):", avg_similarity)
 
 def score_product_type(row):
     stim_score = float(np.dot(row[stim_cols].values, predicted_stims[stim_cols].values))
@@ -1130,7 +1130,7 @@ if developer_mode:
 
         st.subheader("Model diagnostics")
         st.write(f"Number of matched respondents used: {len(top_df)}")
-        st.write(f"Average similarity of matched respondents: {top_df['similarity'].mean():.3f}")
+        st.write(f"Average similarity of matched respondents: {top_df['raw_similarity'].mean():.3f}")
         st.write(f"Dataset size: {len(df)}")
 
         with st.expander("Show top matched respondents"):
