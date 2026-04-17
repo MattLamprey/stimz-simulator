@@ -417,19 +417,23 @@ working_df["similarity"] = working_df.apply(
 # Sort by strongest similarity first
 working_df = working_df.sort_values("similarity", ascending=False).copy()
 
+# Keep a copy of raw similarity for diagnostics
+working_df["raw_similarity"] = working_df["similarity"]
+
 # Sharpen the difference between strong and weak matches
 working_df["similarity"] = working_df["similarity"].astype(float) ** 2
 
-# Keep only reasonably strong matches
+# Prefer genuinely strong matches
 top_df = working_df[working_df["similarity"] > (0.45 ** 2)].copy()
 
-# Hard cap so recommendations are driven by nearest matches, not broad averages
-top_n = 25
-top_df = top_df.head(top_n).copy()
-
-# Fallback if too few matches survive
-if len(top_df) < 15:
-    top_df = working_df.head(top_n).copy()
+# Adaptive match pool size
+if len(top_df) >= 15:
+    top_df = top_df.head(15).copy()
+elif len(top_df) >= 8:
+    top_df = top_df.head(len(top_df)).copy()
+else:
+    # fallback to best available matches, but keep it tight
+    top_df = working_df.head(12).copy()
 
 # Build base similarity weights
 weights = top_df["similarity"].astype(float)
@@ -453,7 +457,9 @@ top_df["respondent_severity_group"] = top_df.apply(
 
 # Boost same/near severity groups
 severity_boost = top_df["respondent_severity_group"].apply(
-    lambda x: 1.10 if x == user_severity_group else (1.03 if severity_group_similarity(user_severity_group, x) == 0.5 else 1.0)
+    lambda x: 1.10 if x == user_severity_group else (
+        1.03 if severity_group_similarity(user_severity_group, x) == 0.5 else 1.0
+    )
 )
 
 # Final weights
@@ -464,7 +470,7 @@ if weights.sum() == 0:
     st.error("Similarity scores summed to zero. Try selecting more common conditions or symptoms.")
     st.stop()
 
-avg_similarity = float(top_df["similarity"].mean())
+avg_similarity = float(top_df["raw_similarity"].mean())
 
 # ----------------------------
 # AGGREGATE RESULTS
