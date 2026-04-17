@@ -779,73 +779,63 @@ def score_product_type(row):
 
     persona_name = persona_names.get(user_cluster, "")
 
+    # Needs
     intensity_need = predicted_stims["Intenseinputspikypain"] + predicted_stims["Weightedpressure"]
     visual_need = predicted_stims["Lookingatcolourormovement"]
-
-    movement_need = (
-        predicted_stims["Flipfoldmovingbackandforth"]
-        + predicted_stims["Twistingspinning"]
-        + predicted_stims["Tappingdrumming"]
-        + predicted_stims["Rolling"]
-    )
     oral_need = predicted_stims["Chewingmouthing"]
-    pressure_need = predicted_stims["Weightedpressure"] + predicted_stims["Squeezingsquishing"] + predicted_stims["Stretchingpulling"]
 
+    # Dominant stim boost
     top_stim = predicted_stims.idxmax()
     top_stim_value = predicted_stims.max()
 
-    # Dominant-need boost
     if top_stim_value > 0.12 and row[top_stim] > 0:
-        stim_score *= 1.20
+        stim_score *= 1.2
 
-    # Persona-based tuning
-    # Persona-based tuning (REFINED)
+    # Persona tuning
+    if persona_name == "High-Intensity Seeker":
+        if row["Product type"] in ["Intense sensory stim", "Squeeze / resistance stim"]:
+            stim_score *= 1.25
+        if row["Product type"] in ["Quiet handheld stim", "Wearable sensory stim"]:
+            stim_score *= 0.8
 
-if persona_name == "High-Intensity Seeker":
-    if row["Product type"] in ["Intense sensory stim", "Squeeze / resistance stim"]:
-        stim_score *= 1.25
-    if row["Product type"] in ["Quiet handheld stim", "Wearable sensory stim"]:
-        stim_score *= 0.8
+    elif persona_name == "Anxious Habit Regulator":
+        if row["Product type"] in ["Chewable stim", "Tactile texture stim"]:
+            stim_score *= 1.3
+        if row["Product type"] in ["Intense sensory stim"]:
+            stim_score *= 0.6
 
-elif persona_name == "Anxious Habit Regulator":
-    if row["Product type"] in ["Chewable stim", "Tactile texture stim"]:
-        stim_score *= 1.3
-    if row["Product type"] in ["Intense sensory stim"]:
-        stim_score *= 0.6
+    elif persona_name == "Deep Pressure Regulator":
+        if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim"]:
+            stim_score *= 1.3
+        if row["Product type"] in ["Visual stim"]:
+            stim_score *= 0.6
 
-elif persona_name == "Deep Pressure Regulator":
-    if row["Product type"] in ["Deep-pressure stim", "Squeeze / resistance stim"]:
-        stim_score *= 1.3
-    if row["Product type"] in ["Visual stim"]:
-        stim_score *= 0.6
+    elif persona_name == "Oral & Pressure Regulator":
+        if row["Product type"] in ["Chewable stim", "Deep-pressure stim"]:
+            stim_score *= 1.25
+        if row["Product type"] in ["Visual stim"]:
+            stim_score *= 0.7
 
-elif persona_name == "Oral & Pressure Regulator":
-    if row["Product type"] in ["Chewable stim", "Deep-pressure stim"]:
-        stim_score *= 1.25
-    if row["Product type"] in ["Visual stim"]:
-        stim_score *= 0.7
+    elif persona_name == "Anxious Focus Regulator":
+        if row["Product type"] in ["Fidget / motor stim", "Quiet handheld stim"]:
+            stim_score *= 1.25
+        if row["Product type"] in ["Intense sensory stim"]:
+            stim_score *= 0.75
 
-elif persona_name == "Anxious Focus Regulator":
-    if row["Product type"] in ["Fidget / motor stim", "Quiet handheld stim"]:
-        stim_score *= 1.25
-    if row["Product type"] in ["Intense sensory stim"]:
-        stim_score *= 0.75
-
-    # Intensity mismatch penalty
+    # Intensity mismatch
     product_intensity = row["Intenseinputspikypain"] + row["Weightedpressure"]
     mismatch_penalty = 0.0
+
     if intensity_need > 0.2 and product_intensity < 0.3:
         mismatch_penalty += 0.2
 
-    # Visual penalties
+    # Visual penalty
     visual_penalty = 0.0
     if row["Product type"] == "Visual stim":
         if visual_need < 0.08:
             visual_penalty += 0.25
         if intensity_need > 0.3:
-            visual_penalty += 0.20
-        if user_severity_group == "High" and intensity_need > 0.2:
-            visual_penalty += 0.20
+            visual_penalty += 0.2
 
     return (stim_weight * stim_score) + (feature_weight * feature_score) - mismatch_penalty - visual_penalty
 
