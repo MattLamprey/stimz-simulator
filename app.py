@@ -1054,16 +1054,14 @@ st.write(persona_descriptions.get(persona_name, ""))
 
 st.subheader("Why these may help")
 
+all_recommendations = top_primary_product_types + top_supporting_product_types
+
 st.markdown(f"""
-Based on what you've told us, it looks like you may benefit most from:
+Based on what you've told us, the most suitable types of stim for you are:
 
-{chr(10).join([f"- **{x}**" for x in top_3_stims])}
+{chr(10).join([f"- **{x}**" for x in all_recommendations])}
 
-These tend to work best when the product is:
-
-{chr(10).join([f"- **{x}**" for x in top_3_features])}
-
-Your recommendations are based mainly on the challenges you selected:  
+These are likely to help because of the challenges you selected:
 **{join_nicely(top_3_symptoms)}**
 """)
 
