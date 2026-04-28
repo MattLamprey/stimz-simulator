@@ -593,23 +593,35 @@ user_cluster = int(persona_model.predict(user_persona_vector_scaled)[0])
 predicted_stims = predicted_stims.copy()
 predicted_features = predicted_features.copy()
 
-if selected_environment == "Structured":
-    predicted_features["Discreet"] += 0.08
-    predicted_features["Quiet"] += 0.08
-    predicted_features["Easytouseonehanded"] += 0.04
+# ENVIRONMENT BOOST AT PRODUCT LEVEL (STRONGER + SAFER)
 
-elif selected_environment == "Public":
-    predicted_features["Discreet"] += 0.10
-    predicted_features["Pocketsizedeasytocarry"] += 0.08
-    predicted_features["Quiet"] += 0.05
+if selected_environment == "Public":
+    product_types.loc[
+        product_types["Product type"].isin([
+            "Quiet handheld stim",
+            "Wearable sensory stim",
+            "Chewable stim"
+        ]),
+        "Score"
+    ] *= 1.15
+
+elif selected_environment == "Structured":
+    product_types.loc[
+        product_types["Product type"].isin([
+            "Quiet handheld stim",
+            "Wearable sensory stim"
+        ]),
+        "Score"
+    ] *= 1.18
 
 elif selected_environment == "Home":
-    predicted_stims["Weightedpressure"] += 0.05
-    predicted_stims["Intenseinputspikypain"] += 0.04
-
-elif selected_environment == "Mixed":
-    predicted_features["Pocketsizedeasytocarry"] += 0.04
-    predicted_features["Discreet"] += 0.04
+    product_types.loc[
+        product_types["Product type"].isin([
+            "Deep-pressure stim",
+            "Intense sensory stim"
+        ]),
+        "Score"
+    ] *= 1.12
 
 # Reduce dominance of visual signal
 # Context-aware visual dampening
@@ -1082,7 +1094,7 @@ if developer_mode:
         width="stretch",
         hide_index=True
     )
-    
+
 # Remove visual stim if not needed
 visual_need = predicted_stims["Lookingatcolourormovement"]
 
@@ -1090,9 +1102,27 @@ if visual_need < 0.12:
     product_types = product_types[
         product_types["Product type"].str.strip() != "Visual stim"
     ].reset_index(drop=True)
-    
+
+product_family_map = {
+    "Deep-pressure stim": "intensity",
+    "Squeeze / resistance stim": "intensity",
+    "Stretch-based stim": "intensity",
+    "Intense sensory stim": "intensity",
+
+    "Chewable stim": "oral",
+
+    "Tactile texture stim": "tactile",
+
+    "Quiet handheld stim": "fidget",
+    "Fidget / motor stim": "fidget",
+
+    "Visual stim": "visual",
+
+    "Wearable sensory stim": "wearable"
+}    
 # Split into primary vs supporting
 primary_candidates = []
+used_families = set()
 supporting_candidates = []
 
 supporting_types = []
@@ -1102,10 +1132,18 @@ if predicted_stims["Lookingatcolourormovement"] > 0.12:
     supporting_types.append("Visual stim")
 
 for p in product_types["Product type"]:
+    family = product_family_map.get(p, "other")
+
     if p in supporting_types:
         supporting_candidates.append(p)
-    else:
+        continue
+
+    # Prevent duplicate families in primary
+    if family not in used_families:
         primary_candidates.append(p)
+        used_families.add(family)
+    else:
+        supporting_candidates.append(p)
 
 top_primary_product_types = primary_candidates[:2]
 top_supporting_product_types = supporting_candidates[:1]
