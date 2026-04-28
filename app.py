@@ -374,6 +374,7 @@ if developer_mode and test_variable:
 
     # Drop missing groups
     temp_df = df.dropna(subset=[test_variable]).copy()
+    temp_df = temp_df[temp_df[test_variable] != "Unknown"]
 
     if temp_df.empty:
         st.warning("No valid data for this variable.")
