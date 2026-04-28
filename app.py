@@ -389,22 +389,6 @@ if developer_mode and test_variable:
 
     st.dataframe(grouped, width="stretch")
 
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(figsize=(12, 5))
-
-    cax = ax.imshow(grouped.values.astype(float), aspect="auto")
-    fig.colorbar(cax)
-
-    ax.set_xticks(range(len(grouped.columns)))
-    ax.set_xticklabels(grouped.columns, rotation=90)
-
-    ax.set_yticks(range(len(grouped.index)))
-    ax.set_yticklabels(grouped.index)
-
-    ax.set_title(f"Average stim/feature scores by {variable_map[test_variable]}")
-
-    st.pyplot(fig)
 # ----------------------------
 # BUILD PERSONA
 # ----------------------------
