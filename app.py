@@ -48,8 +48,18 @@ employment_map = {
     "Prefer not to say": "Unknown",
 }
 
-df["env_clean"] = df["op3_1"].map(environment_map)
-df["employment_clean"] = df["op3_3"].map(employment_map)
+df["env_clean"] = (
+    df["op3_1"]
+    .astype(str)
+    .str.strip()
+    .map(environment_map)
+)
+df["employment_clean"] = (
+    df["op3_3"]
+    .astype(str)
+    .str.strip()
+    .map(employment_map)
+)
 
 variable_map = {
     "env_clean": "Stim usage environment",
@@ -362,7 +372,19 @@ if developer_mode and test_variable:
     st.markdown("---")
     st.subheader(f"Variable testing: {variable_map[test_variable]}")
 
-    grouped = df.groupby(test_variable)[stim_cols + feature_cols].mean()
+    # Drop missing groups
+    temp_df = df.dropna(subset=[test_variable]).copy()
+
+    if temp_df.empty:
+        st.warning("No valid data for this variable.")
+        st.stop()
+
+    grouped = temp_df.groupby(test_variable)[stim_cols + feature_cols].mean()
+
+    if grouped.empty:
+        st.warning("Grouping produced no results.")
+        st.stop()
+
     grouped = grouped.rename(columns={**stim_labels, **feature_labels})
 
     st.dataframe(grouped, width="stretch")
@@ -371,20 +393,18 @@ if developer_mode and test_variable:
 
     fig, ax = plt.subplots(figsize=(12, 5))
 
-cax = ax.imshow(grouped.values, aspect="auto")
+    cax = ax.imshow(grouped.values.astype(float), aspect="auto")
+    fig.colorbar(cax)
 
-# Add color bar
-fig.colorbar(cax)
+    ax.set_xticks(range(len(grouped.columns)))
+    ax.set_xticklabels(grouped.columns, rotation=90)
 
-ax.set_xticks(range(len(grouped.columns)))
-ax.set_xticklabels(grouped.columns, rotation=90)
+    ax.set_yticks(range(len(grouped.index)))
+    ax.set_yticklabels(grouped.index)
 
-ax.set_yticks(range(len(grouped.index)))
-ax.set_yticklabels(grouped.index)
+    ax.set_title(f"Average stim/feature scores by {variable_map[test_variable]}")
 
-ax.set_title(f"Average stim/feature scores by {variable_map[test_variable]}")
-
-st.pyplot(fig)
+    st.pyplot(fig)
 # ----------------------------
 # BUILD PERSONA
 # ----------------------------
