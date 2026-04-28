@@ -1085,7 +1085,7 @@ elif selected_environment == "Home":
         ]),
         "Score"
     ] *= 1.12
-    
+
 product_types = product_types.sort_values("Score", ascending=False).reset_index(drop=True)
 
 if developer_mode:
@@ -1229,7 +1229,7 @@ for i, item in enumerate(top_primary_product_types, start=1):
 # SUPPORTING
 if top_supporting_product_types:
     st.markdown("## Also worth trying")
-    st.caption("Additional tools that may complement your primary regulation style")
+    st.caption("Another option that may support the same need in a slightly different way")
 
     for i, item in enumerate(top_supporting_product_types, start=1):
         st.markdown(f"### {i}. {item}")
