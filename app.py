@@ -12,6 +12,7 @@ st.set_page_config(page_title="Stimz Recommender Prototype", layout="wide")
 # ----------------------------
 developer_mode = st.sidebar.checkbox("Developer mode", value=False)
 
+
 # ----------------------------
 # LOAD DATA
 # ----------------------------
@@ -24,6 +25,44 @@ def load_data():
     return df
 
 df = load_data()
+
+
+environment_map = {
+    "At home (daytime)": "Home",
+    "Bedtime / sleep": "Home",
+    "Multiple equally": "Mixed",
+    "Out in public": "Public",
+    "School / classroom": "Structured",
+    "Work / meetings": "Structured",
+    "Prefer not to say": "Unknown",
+}
+
+employment_map = {
+    "Working full-time": "Working",
+    "Working part-time": "Working",
+    "Self-employed": "Working",
+    "In school": "Student",
+    "In college / university": "Student",
+    "Not currently working": "Not working",
+    "Retired": "Not working",
+    "Prefer not to say": "Unknown",
+}
+
+df["env_clean"] = df["op3_1"].map(environment_map)
+df["employment_clean"] = df["op3_3"].map(employment_map)
+
+variable_map = {
+    "env_clean": "Stim usage environment",
+    "employment_clean": "Employment / study status",
+}
+
+st.sidebar.subheader("Model testing")
+
+test_variable = st.sidebar.selectbox(
+    "Test variable",
+    options=[None] + list(variable_map.keys()),
+    format_func=lambda x: "None" if x is None else variable_map[x]
+)
 
 # ----------------------------
 # DISPLAY LABELS
@@ -319,6 +358,33 @@ for col in required_cols:
 
 df[required_cols] = df[required_cols].fillna(0)
 
+if developer_mode and test_variable:
+    st.markdown("---")
+    st.subheader(f"Variable testing: {variable_map[test_variable]}")
+
+    grouped = df.groupby(test_variable)[stim_cols + feature_cols].mean()
+    grouped = grouped.rename(columns={**stim_labels, **feature_labels})
+
+    st.dataframe(grouped, width="stretch")
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+cax = ax.imshow(grouped.values, aspect="auto")
+
+# Add color bar
+fig.colorbar(cax)
+
+ax.set_xticks(range(len(grouped.columns)))
+ax.set_xticklabels(grouped.columns, rotation=90)
+
+ax.set_yticks(range(len(grouped.index)))
+ax.set_yticklabels(grouped.index)
+
+ax.set_title(f"Average stim/feature scores by {variable_map[test_variable]}")
+
+st.pyplot(fig)
 # ----------------------------
 # BUILD PERSONA
 # ----------------------------
@@ -359,6 +425,17 @@ with col1:
     )
 user_severity = (float(severity) - 1.0) / 4.0
 user_severity_group = severity_group_from_score(severity)
+
+selected_environment = st.selectbox(
+    "Where do you mainly use stims?",
+    ["Home", "Structured", "Public", "Mixed"],
+    format_func=lambda x: {
+        "Home": "At home / bedtime",
+        "Structured": "Work, school, or meetings",
+        "Public": "Out in public",
+        "Mixed": "Multiple settings equally",
+    }.get(x, x)
+)
 
 if developer_mode:
     st.caption(f"Severity group: {user_severity_group}")
@@ -509,6 +586,25 @@ user_cluster = int(persona_model.predict(user_persona_vector_scaled)[0])
 # TUNE STIM SIGNALS BEFORE PRODUCT MAPPING
 # ----------------------------
 predicted_stims = predicted_stims.copy()
+predicted_features = predicted_features.copy()
+
+if selected_environment == "Structured":
+    predicted_features["Discreet"] += 0.08
+    predicted_features["Quiet"] += 0.08
+    predicted_features["Easytouseonehanded"] += 0.04
+
+elif selected_environment == "Public":
+    predicted_features["Discreet"] += 0.10
+    predicted_features["Pocketsizedeasytocarry"] += 0.08
+    predicted_features["Quiet"] += 0.05
+
+elif selected_environment == "Home":
+    predicted_stims["Weightedpressure"] += 0.05
+    predicted_stims["Intenseinputspikypain"] += 0.04
+
+elif selected_environment == "Mixed":
+    predicted_features["Pocketsizedeasytocarry"] += 0.04
+    predicted_features["Discreet"] += 0.04
 
 # Reduce dominance of visual signal
 # Context-aware visual dampening
