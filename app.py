@@ -593,36 +593,6 @@ user_cluster = int(persona_model.predict(user_persona_vector_scaled)[0])
 predicted_stims = predicted_stims.copy()
 predicted_features = predicted_features.copy()
 
-# ENVIRONMENT BOOST AT PRODUCT LEVEL (STRONGER + SAFER)
-
-if selected_environment == "Public":
-    product_types.loc[
-        product_types["Product type"].isin([
-            "Quiet handheld stim",
-            "Wearable sensory stim",
-            "Chewable stim"
-        ]),
-        "Score"
-    ] *= 1.15
-
-elif selected_environment == "Structured":
-    product_types.loc[
-        product_types["Product type"].isin([
-            "Quiet handheld stim",
-            "Wearable sensory stim"
-        ]),
-        "Score"
-    ] *= 1.18
-
-elif selected_environment == "Home":
-    product_types.loc[
-        product_types["Product type"].isin([
-            "Deep-pressure stim",
-            "Intense sensory stim"
-        ]),
-        "Score"
-    ] *= 1.12
-
 # Reduce dominance of visual signal
 # Context-aware visual dampening
 visual_base = predicted_stims["Lookingatcolourormovement"]
@@ -1085,6 +1055,37 @@ def score_product_type(row):
     )
 
 product_types["Score"] = product_types.apply(score_product_type, axis=1)
+
+# ENVIRONMENT BOOST AT PRODUCT LEVEL (STRONGER + SAFER)
+
+if selected_environment == "Public":
+    product_types.loc[
+        product_types["Product type"].isin([
+            "Quiet handheld stim",
+            "Wearable sensory stim",
+            "Chewable stim"
+        ]),
+        "Score"
+    ] *= 1.15
+
+elif selected_environment == "Structured":
+    product_types.loc[
+        product_types["Product type"].isin([
+            "Quiet handheld stim",
+            "Wearable sensory stim"
+        ]),
+        "Score"
+    ] *= 1.18
+
+elif selected_environment == "Home":
+    product_types.loc[
+        product_types["Product type"].isin([
+            "Deep-pressure stim",
+            "Intense sensory stim"
+        ]),
+        "Score"
+    ] *= 1.12
+    
 product_types = product_types.sort_values("Score", ascending=False).reset_index(drop=True)
 
 if developer_mode:
