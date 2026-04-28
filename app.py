@@ -1075,6 +1075,14 @@ def score_product_type(row):
 product_types["Score"] = product_types.apply(score_product_type, axis=1)
 product_types = product_types.sort_values("Score", ascending=False).reset_index(drop=True)
 
+if developer_mode:
+    st.write("Product type scores")
+    st.dataframe(
+        product_types[["Product type", "Score"]],
+        width="stretch",
+        hide_index=True
+    )
+    
 # Remove visual stim if not needed
 visual_need = predicted_stims["Lookingatcolourormovement"]
 
